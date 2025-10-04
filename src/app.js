@@ -4,15 +4,16 @@ const express = require('express');
 
 const app = express();
 
-app.get("/", (req, res)=>{
-    res.send('Hello from the server!');
+app.get("/user", (req, res)=>{
+    res.send({firstName: "Srinivas, lastName:'G"});
 });
 
-app.get("/test", (req, res)=>{
-    res.send('Hi test! test');
+app.post("/user", (req, res)=>{
+    console.log(req.body);
+    res.send('Data successfully saved to the database!');
 });
-app.get("/hello", (req, res)=>{
-    res.send('Hello from hello!');
+app.delete("/user", (req, res)=>{
+    res.send('Deleted successfully!');
 });
 
 app.listen(3000, ()=>{
