@@ -1,35 +1,19 @@
 
 const express = require('express');
+const { adminAuth } = require('./middlewares/auth');
 
 
 const app = express();
 
-app.use("/user", 
-    (req, res, next)=>{
-    console.log('first1');
-    next();
-}, [(req, res, next)=>{
-    console.log('secondone');
-    //res.send("sendone");
-    next();
-}, 
-(req, res, next)=>{
-    console.log('third');
-    //res.send("third");
-    next();
-}]);
+app.use("/admin", adminAuth);
 
-// app.get("/user", (req, res)=>{
-//     res.send({firstName: "Srinivas, lastName:'G"});
-// });
+app.get("/admin/getAllData", (req, res)=>{
+    res.send("All Data Sent");
+});
 
-// app.post("/user", (req, res)=>{
-//     console.log(req.body);
-//     res.send('Data successfully saved to the database!');
-// });
-// app.delete("/user", (req, res)=>{
-//     res.send('Deleted successfully!');
-// });
+app.get("/admin/deleteUser", (req, res)=>{
+    res.send("Deleted a user");
+});
 
 app.listen(3000, ()=>{
     console.log("server is running on port 3000...");
