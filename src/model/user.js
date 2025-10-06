@@ -1,34 +1,46 @@
 
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type:String,
-        required: true,
-        minLength: 4
-    },
-    lastName: {
-        type: String
-    },
-    emailId: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true
-    },
-    age: {
+firstName: {
+    type:String,
+    required: true,
+    minLength: 4
+},
+lastName: {
+    type: String
+},
+emailId: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    validate: {
+        validator: function (value) {
+        return validator.isEmail(value);
+        },
+        message: props => `Invalid email address: ${props.value}`
+    }
+},
+password: {
+    type: String,
+    validate(value){
+        if(!validator.isStrongPassword(value)){
+            throw new Error("Enter a strong password");
+        }
+    }
+
+},
+ age: {
         type: Number
     },
-    gener: {
-        type: String,
-        validate(value){
-            if(!['male', 'female', 'others'].includes(value));
-            throw new Error("Gender data is not valid")
-        }
+    gender: {
+        type: String
     },
     photoUrl:{
-        type: String
+        type: String,
     },
     about: {
         type: String,
@@ -36,7 +48,7 @@ const userSchema = new mongoose.Schema({
     },
     skills: {
         type: [String]
-    }      
+    }    
     
 },{
     timestamps: true

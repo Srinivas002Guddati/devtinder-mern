@@ -2,23 +2,36 @@
 const express = require('express');
 const connectDB = require('./config/database');
 const User = require('./model/user');
+const { validateSignupData } = require('./utils/validation');
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res)=>{
-    console.log("req", req.body);
-    
+  
     try{
+        const { firstName, lastName, emailId, password } = req.body;
+        //validation of data
+        validateSignupData(req);
+
+        //Encrypt the password
+        const passwordHash = await bcrypt.hash(password, 10);
+
         const existingUser = await User.findOne({emailId: req.body.emailId});
         if(existingUser){
             return res.status(409).send("Email already existing");
         }
-        const user = new User(req.body);
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: passwordHash
+        });
         await user.save();    
         res.send("User added successfully");
     }catch (err){
-        res.status(400).send("Error saving the user: ", err.message); 
+        res.status(400).send("Error saving the user: " + err.message); 
     }
 });
 
@@ -53,16 +66,30 @@ app.delete("/user", async (req, res)=>{
     }
 });
 
-app.patch("/user", async (req, res)=>{
-    const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res)=>{
+    const userId = req.params?.userId;
     const data = req.body;
 
     try{
+        const ALLOWED_UPDATES = [
+            "photoUrl",
+            "about",
+            "gender",
+            "age",
+            "skills"
+        ];
+        const isUpdateAllowed = Object.keys(data).every((k)=> ALLOWED_UPDATES.includes(k))
+        if(!isUpdateAllowed){
+            throw new Error("Udate not allowed");
+        }
+
+        if(data?.skills.length > 10){
+            throw new Error("Skills cannot be more than 10");
+        }
         const existingUser = await User.findOne({emailId: req.body.emailId});
         if(existingUser){
             return res.status(409).send("Email already existing");
         }
-
         const user = await User.findByIdAndUpdate({_id: userId}, data,{
             returnDocument: "after",
             runValidators: true
@@ -70,7 +97,7 @@ app.patch("/user", async (req, res)=>{
         console.log("");
         res.send("User updated successfully");
     }catch (err){
-        res.status(404).send("Something went wrong");
+        res.status(400).send(err.message);
     }
 });
 
@@ -81,7 +108,7 @@ connectDB().then(()=>{
 });
 
 }).catch((err)=>{
-    console.log("Database connection established...");
+    console.log("Connection issues...");
 });
 
 
